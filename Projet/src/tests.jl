@@ -27,7 +27,7 @@ end
 
 #tests sur des matrices surdéterminées
 @testset begin
-    m, n = 10, 10
+    m, n = 10, 8
     A = rand(m,n)
     b = rand(m)
     R_H = copy(A)

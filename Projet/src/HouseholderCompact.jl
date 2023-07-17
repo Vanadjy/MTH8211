@@ -59,6 +59,7 @@ end
 
 #Amélioration : appeler vj avant la boucle et sélectionner les valeurs qui nous intéressent plutôt que de l'appeler à chaque itération
 
+## Version obsolète... ##
 function Householder_Compact!(A)
     m, n = size(A)
     if m==n
@@ -109,10 +110,9 @@ function Householder_Compact_v2!(A)
             δj = vj'vj
     
             #applying Householder reflection
-            A[j:m,j:n] -= 2*vj*(vj'A[j:m,j:n])/δj
-            
+            A[j:m,j:n] .-= 2*vj*(vj'view(A,j:m,j:n))/δj
             #store uⱼ
-            A[j+1:m,j] = vj[2:end]
+            A[j+1:m,j] .= vj[2:end]
 
             #going to next step
             j += 1
