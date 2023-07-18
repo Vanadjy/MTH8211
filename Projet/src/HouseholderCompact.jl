@@ -98,21 +98,26 @@ function Householder_Compact!(A)
     A
 end
 
+
 function Householder_Compact_v2!(A)
     m, n = size(A)
     j = 1
         while (j <= n) & (j < m)
-            vj = A[j:m,j]
-            σj = my_sign(vj[1])
-            vj_norm = norm(vj)
-            vj[1] += σj*vj_norm
-            vj ./= vj[1]
-            δj = vj'vj
+            vj = view(A,j+1:m,j)
+            Aⱼⱼ = A[j,j]
+            σj = my_sign(Aⱼⱼ)
+            vj_norm = norm(vcat(Aⱼⱼ,vj))
+            vj ./= (Aⱼⱼ + σj*vj_norm)
+            δj = vj'vj + 1
+
+            #changing the diagonal term
+            A[j,j] = -σj*vj_norm
     
             #applying Householder reflection
-            A[j:m,j:n] .-= 2*vj*(vj'view(A,j:m,j:n))/δj
-            #store uⱼ
-            A[j+1:m,j] .= vj[2:end]
+            A[j:m,j+1:n] .-= 2*vcat(1,vj)*(vcat(1,vj)'view(A,j:m,j+1:n))/δj
+            
+            #store vⱼ
+            A[j+1:m,j] .= vj
 
             #going to next step
             j += 1
