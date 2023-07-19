@@ -12,7 +12,7 @@ using Test
     A = rand(m,n)
     b = rand(m)
     R_H = copy(A)
-    Householder_Compact_v2!(R_H)
+    Householder_Compact!(R_H)
     F = qr(A)
     
     Q_H = Q_reconstruction!(R_H)
@@ -31,7 +31,7 @@ end
     A = rand(m,n)
     b = rand(m)
     R_H = copy(A)
-    Householder_Compact_v2!(R_H)
+    Householder_Compact!(R_H)
     F = qr(A)
     
     Q_H = Q_reconstruction!(R_H)
@@ -93,7 +93,7 @@ end
     @test norm(Q*R - A) <= 1e-13 #tests if the decomposition is correct
 
     R_H = copy(A)
-    Householder_Compact_v2!(R_H)
+    Householder_Compact!(R_H)
     Q_H = Q_reconstruction!(R_H)
     @test norm(Q_H*B - mult_Q_B!(R_H, B)) <= 1e-13 #tests if the multiplication QB is correct
     @test norm(Q_H'B - mult_Q_transpose_B!(R_H, B)) <= 1e-13 #tests if the multiplication Q*B is correct

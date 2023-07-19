@@ -62,39 +62,27 @@ end
 ## Version obsolète... ##
 function Householder_Compact!(A)
     m, n = size(A)
-    if m==n
-        for j = 1:(n-1)
-            vj = A[j:m,j]
+    j = 1
+        while (j <= n) & (j < m)
+            vj = view(A,j:m,j)
             σj = my_sign(vj[1])
             vj_norm = norm(vj)
             vj[1] += σj*vj_norm
-            vj ./= vj[1]
+            vj /= vj[1] #vient modifier directement A si ./
             δj = vj'vj
 
-            #applicating Householder reflection
-            A[j:m,j:n] .-= 2*vj*(vj'view(A,j:m,j:n))/δj
-            
-            #stock u_j
+            #applying Householder reflection
+            A[j:m,j:n] .-= 2*view(vj,:,1)*(view(vj,:,1)'view(A,j:m,j:n))/δj
+
+            #store vj
             A[j+1:m,j] .= vj[2:end]
+
+            #changing diagonal terms
+            A[j,j] = -σj*vj_norm
+
+            #going to next step
+            j += 1
         end
-    else
-        for j = 1:n
-            vj = A[j:m,j]
-            σj = my_sign(vj[1])
-            vj_norm = norm(vj)
-            vj[1] += σj*vj_norm
-            vj ./= vj[1]
-            δj = vj'vj
-    
-            #applicating Householder reflection
-            A[j:m,j:n] -= 2*vj*(vj'A[j:m,j:n])/δj
-            
-            #stock u_j
-            if j+1 <= m #prevent from being out of bounds for square or under-determined matrices
-                A[j+1:m,j] = vj[2:end] 
-            end
-        end
-    end
     A
 end
 
@@ -136,13 +124,12 @@ function Householder_Compact_v3!(A)
             #changing the diagonal term
             A[j,j] = -σj*vj_norm
 
-            #applying Householder on the jᵗʰ column (A[j,j+1:n])
-            #B = A[j+1:m,j+1:n]
-            @views A[j,j+1:n] .= (1-2/δj)*view(A,j,j+1:n) .- 2*(view(vj,:,1)'view(A,j+1:m,j+1:n))'/δj
-            #println(norm(B-A[j+1:m,j+1:n])) #la sous-matrice A[j+1:m,j+1:n] n'est pas modifiée par cette ligne
-            
             #applying Householder reflection (A[j+1:m, j+1:n])
             @views A[j+1:m,j+1:n] .-= 2*view(vj,:,1).*(view(A,j,j+1:n)' + (view(vj,:,1)'view(A,j+1:m,j+1:n)))/δj
+            #applying Householder on the jᵗʰ column (A[j,j+1:n])
+            #b = A[j,j+1:n]
+            @views A[j,j+1:n] .= (1-2/δj)*view(A,j,j+1:n) .- 2*(view(vj,:,1)'view(A,j+1:m,j+1:n))'/δj
+            #println(norm(B-A[j+1:m,j+1:n])) #la sous-matrice A[j+1:m,j+1:n] n'est pas modifiée par cette ligne
 
             #going to next step
             j += 1
@@ -216,7 +203,7 @@ m, n = 10, 8
 A = rand(m,n)
 b = rand(m)
 R_H = copy(A)
-Householder_Compact_v3!(R_H)
+Householder_Compact!(R_H)
 F = qr(A)
     
 Q_H = Q_reconstruction!(R_H)
