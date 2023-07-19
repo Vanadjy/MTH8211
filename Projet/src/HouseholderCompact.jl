@@ -72,7 +72,7 @@ function Householder_Compact!(A)
             δj = vj'vj
 
             #applying Householder reflection
-            @views A[j:m,j:n] .-= 2*vj*(vj'view(A,j:m,j:n))/δj
+            @views A[j:m,j:n] .-= 2*view(vj,:,1)*(view(vj,:,1)'view(A,j:m,j:n))/δj
 
             #store vj
             @views A[j+1:m,j] .= vj[2:end]
