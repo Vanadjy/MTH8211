@@ -98,7 +98,6 @@ function Householder_Compact!(A)
     A
 end
 
-
 function Householder_Compact_v2!(A)
     m, n = size(A)
     j = 1
@@ -112,9 +111,43 @@ function Householder_Compact_v2!(A)
 
             #changing the diagonal term
             A[j,j] = -σj*vj_norm
-            
+
             #applying Householder reflection
-            A[j:m,j+1:n] .-= 2*vcat(1,vj)*(vcat(1,vj)'view(A,j:m,j+1:n))/δj
+            uⱼ = vcat(1,vj)
+            A[j:m,j+1:n] .-= 2*uⱼ*(uⱼ'view(A,j:m,j+1:n))/δj
+
+            #going to next step
+            j += 1
+        end
+    A
+end
+
+function Householder_Compact_v3!(A)
+    m, n = size(A)
+    j = 1
+        while (j <= n) & (j < m)
+            vj = view(A,j+1:m,j)
+            Aⱼⱼ = A[j,j]
+            σj = my_sign(Aⱼⱼ)
+            vj_norm = sqrt(Aⱼⱼ^2 + norm(vj)^2)
+            vj ./= (Aⱼⱼ + σj*vj_norm)
+            δj = vj'vj + 1
+
+            #changing the diagonal term
+            A[j,j] = -σj*vj_norm
+            
+            #=
+            #applying Householder on the jᵗʰ line (A[j+1:m,j])
+            α = A[j+1,j]
+            β₂ = α .+ vj'view(A,j+1:m,j)/δj
+            A[j+1:m, j] .-= -2*vj*β₂/δj
+
+
+            #applying Householder on the jᵗʰ column (A[j,j+1:n])
+            A[j,j+1:n] .-= -2*(view(A,j,j+1:n)' + (vj'view(A,j+1:m,j+1:n)))'/δj =#
+            
+            #applying Householder reflection (A[j+1:m, j+1:n])
+            A[j+1:m,j+1:n] .-= 2*vj*(vj'view(A,j+1:m,j+1:n))/δj
 
             #going to next step
             j += 1
@@ -183,3 +216,13 @@ function mult_Q_x!(A,x)
     end
     x
 end
+
+m, n = 10, 8
+A = rand(m,n)
+b = rand(m)
+R_H = copy(A)
+Householder_Compact_v2!(R_H)
+F = qr(A)
+    
+Q_H = Q_reconstruction!(R_H)
+F.R - triu(R_H)[1:n,1:n]
