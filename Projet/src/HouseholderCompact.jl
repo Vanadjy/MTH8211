@@ -113,8 +113,7 @@ function Householder_Compact_v2!(A)
             A[j,j] = -σj*vj_norm
 
             #applying Householder reflection
-            uⱼ = vcat(1,vj)
-            A[j:m,j+1:n] .-= 2*uⱼ*(uⱼ'view(A,j:m,j+1:n))/δj
+            @views A[j:m,j+1:n] .-= 2*vcat(1,vj)*(vcat(1,vj)'view(A,j:m,j+1:n))/δj
 
             #going to next step
             j += 1
