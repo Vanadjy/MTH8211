@@ -113,7 +113,7 @@ function Householder_Compact_v2!(A)
             A[j,j] = -σj*vj_norm
 
             #applying Householder reflection
-            @views A[j:m,j+1:n] .-= 2*vcat(1,vj)*(vcat(1,vj)'view(A,j:m,j+1:n))/δj
+            A[j:m,j+1:n] .-= 2*view(vcat(1,vj),:,1).*(view(vcat(1,vj),:,1)'view(A,j:m,j+1:n))./δj
 
             #going to next step
             j += 1
@@ -215,13 +215,3 @@ function mult_Q_x!(A,x)
     end
     x
 end
-
-m, n = 10, 8
-A = rand(m,n)
-b = rand(m)
-R_H = copy(A)
-Householder_Compact_v2!(R_H)
-F = qr(A)
-    
-Q_H = Q_reconstruction!(R_H)
-F.R - triu(R_H)[1:n,1:n]
