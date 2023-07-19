@@ -135,19 +135,14 @@ function Householder_Compact_v3!(A)
 
             #changing the diagonal term
             A[j,j] = -σj*vj_norm
-            
-            #=
-            #applying Householder on the jᵗʰ line (A[j+1:m,j])
-            α = A[j+1,j]
-            β₂ = α .+ vj'view(A,j+1:m,j)/δj
-            A[j+1:m, j] .-= -2*vj*β₂/δj
-
 
             #applying Householder on the jᵗʰ column (A[j,j+1:n])
-            A[j,j+1:n] .-= -2*(view(A,j,j+1:n)' + (vj'view(A,j+1:m,j+1:n)))'/δj =#
+            #B = A[j+1:m,j+1:n]
+            @views A[j,j+1:n] .= (1-2/δj)*view(A,j,j+1:n) .- 2*(view(vj,:,1)'view(A,j+1:m,j+1:n))'/δj
+            #println(norm(B-A[j+1:m,j+1:n])) #la sous-matrice A[j+1:m,j+1:n] n'est pas modifiée par cette ligne
             
             #applying Householder reflection (A[j+1:m, j+1:n])
-            A[j+1:m,j+1:n] .-= 2*vj*(vj'view(A,j+1:m,j+1:n))/δj
+            @views A[j+1:m,j+1:n] .-= 2*view(vj,:,1).*(view(A,j,j+1:n)' + (view(vj,:,1)'view(A,j+1:m,j+1:n)))/δj
 
             #going to next step
             j += 1
@@ -217,12 +212,13 @@ function mult_Q_x!(A,x)
     x
 end
 
-#=m, n = 10, 8
+m, n = 10, 8
 A = rand(m,n)
 b = rand(m)
 R_H = copy(A)
-Householder_Compact_v2!(R_H)
+Householder_Compact_v3!(R_H)
 F = qr(A)
     
 Q_H = Q_reconstruction!(R_H)
-F.R - triu(R_H)[1:n,1:n]=#
+F.R - triu(R_H)[1:n,1:n]
+F.Q - Q_H
