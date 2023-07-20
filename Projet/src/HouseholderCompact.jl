@@ -65,17 +65,18 @@ function Householder_Compact!(A)
     j = 1
         while (j <= n) & (j < m)
             vj = view(A,j:m,j)
-            σj = my_sign(vj[1])
+            Aⱼⱼ = vj[1]
+            σj = my_sign(Aⱼⱼ)
             vj_norm = norm(vj)
             vj[1] += σj*vj_norm
-            vj /= vj[1] #vient modifier directement A si ./
+            #vj /= vj[1]
+            #vj ./= (Aⱼⱼ + σj*vj_norm) #vient modifier directement A si ./
             δj = vj'vj
 
             #applying Householder reflection
-            @views A[j:m,j:n] .-= 2*view(vj,:,1)*(view(vj,:,1)'view(A,j:m,j:n))/δj
+            A[j:m,j:n] .-= 2*vj*(vj'view(A,j:m,j:n))/δj #écrase la colonne j -> trouver un moyen d'éviter une telle chose + l'opération "vj'view(...)" créer un nouveau vecteur 
 
-            #store vj
-            @views A[j+1:m,j] .= vj[2:end]
+            A[j+1:m, j] .= view(vj,2:m-j+1,1)./(vj[1]) #store vj
 
             #changing diagonal terms
             A[j,j] = -σj*vj_norm
@@ -86,7 +87,7 @@ function Householder_Compact!(A)
     A
 end
 
-function Householder_Compact_v2!(A)
+#=function Householder_Compact_v2!(A)
     m, n = size(A)
     j = 1
         while (j <= n) & (j < m)
@@ -135,7 +136,7 @@ function Householder_Compact_v3!(A)
             j += 1
         end
     A
-end
+end=#
 
 
 
@@ -207,5 +208,5 @@ Householder_Compact!(R_H)
 F = qr(A)
     
 Q_H = Q_reconstruction!(R_H)
-F.R - triu(R_H)[1:n,1:n]
 F.Q - Q_H
+F.R - triu(R_H)[1:n,1:n]
