@@ -68,13 +68,18 @@ function Householder_Compact!(A)
             Aⱼⱼ = vj[1]
             σj = my_sign(Aⱼⱼ)
             vj_norm = norm(vj)
-            vj[1] += σj*vj_norm
+            #vj[1] += σj*vj_norm
             #vj /= vj[1]
-            #vj ./= (Aⱼⱼ + σj*vj_norm) #vient modifier directement A si ./
+            vj ./= (Aⱼⱼ + σj*vj_norm) #vient modifier directement A si ./
             δj = vj'vj
 
             #applying Householder reflection
-            A[j:m,j:n] .-= 2*vj*(vj'view(A,j:m,j:n))/δj #écrase la colonne j -> trouver un moyen d'éviter une telle chose + l'opération "vj'view(...)" créer un nouveau vecteur 
+            A[j:n,j:n] .-= view((2/δj)*vj*(vj'view(A,j:m,j:n)),1:(n-j+1),1:(n-j+1))
+            #=for l = j+1:n
+                for k = 1:(l-1) #we only check the upper triangle of A
+                    A[k,l] = A[k,l] .- (2/δj)*(vj'view(A,j:m,l))*view(vj,k,1) 
+                end
+            end=#
 
             A[j+1:m, j] .= view(vj,2:m-j+1,1)./(vj[1]) #store vj
 
@@ -208,5 +213,6 @@ Householder_Compact!(R_H)
 F = qr(A)
     
 Q_H = Q_reconstruction!(R_H)
+
 F.Q - Q_H
 F.R - triu(R_H)[1:n,1:n]
