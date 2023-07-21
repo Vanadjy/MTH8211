@@ -120,7 +120,11 @@ function mult_Q_transpose_x!(A,x)
         uj = view(A,j+1:m,j)
         δj = uj'uj + 1
         xⱼ = x[j]
-        @views β = uj'x[j+1:m,1]
+        β = 0
+        for i = 1:m-j
+            β += uj[i]*x[i+j]
+        end
+        #@views β = uj'x[j+1:m,1]
         x[j] -= 2*(xⱼ + β)/δj
         for l = j+1:m
             x[l] -= 2*(xⱼ + β)*A[l,j]/δj
@@ -139,10 +143,29 @@ function mult_Q_x!(A,x)
         uj = view(A,j+1:m,j)
         δj = uj'uj + 1
         xⱼ = x[j]
-        β = uj'view(x,j+1:m,1)
+        β = 0
+        for i = 1:m-j
+            β += uj[i]*x[i+j]
+        end
+        #@views β = uj'x[j+1:m,1]
         x[j] -= 2*(xⱼ + β)/δj
-        x[j+1:m] .-= 2*(xⱼ + β)*uj/δj
+        for l = j+1:m
+            x[l] -= 2*(xⱼ + β)*A[l,j]/δj
+        end
+        #x[j+1:m] .-= 2*(xⱼ + β)*uj/δj
         k+=1
     end
     x
 end
+
+m, n = 10, 8
+A = rand(m,n)
+b = rand(m)
+R_H = copy(A)
+Householder_Compact!(R_H)
+F = qr(A)
+
+Q_H = Q_reconstruction!(R_H)
+
+norm((Q_H')*b - mult_Q_transpose_x!(R_H,b))
+#norm((Q_H)*b - mult_Q_x!(R_H,b))
