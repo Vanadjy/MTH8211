@@ -75,14 +75,11 @@ function Householder_Compact!(A)
             #applying Householder reflection
             for l=j:n #procéder à QR Householder colonne par colonne
                 β = (vj'view(A,j:m,l))
-                A[j:m,l] .-= (2/δj)*view(A,j:m,j)*β
-            end
-            
-            #=for l = j+1:n
-                for k = 1:(l-1) #we only check the upper triangle of A
-                    A[k,l] = A[k,l] .- (2/δj)*(vj'view(A,j:m,l))*view(vj,k,1) 
+                β *= (2/δj)
+                for k=j:m
+                    A[k,l] -= β*A[k,j]
                 end
-            end=#
+            end
             
             vj ./= vj[1]
             #changing diagonal terms
@@ -93,58 +90,6 @@ function Householder_Compact!(A)
         end
     A
 end
-
-#=function Householder_Compact_v2!(A)
-    m, n = size(A)
-    j = 1
-        while (j <= n) & (j < m)
-            vj = view(A,j+1:m,j)
-            Aⱼⱼ = A[j,j]
-            σj = my_sign(Aⱼⱼ)
-            vj_norm = sqrt(Aⱼⱼ^2 + norm(vj)^2)
-            vj ./= (Aⱼⱼ + σj*vj_norm)
-            δj = vj'vj + 1
-
-            #changing the diagonal term
-            A[j,j] = -σj*vj_norm
-
-            #applying Householder reflection
-            uⱼ = view(vcat(1,vj),:,1)
-            A[j:m,j+1:n] .-= 2*view(uⱼ,:,1).*(view(uⱼ,:,1)'view(A,j:m,j+1:n))./δj
-
-            #going to next step
-            j += 1
-        end
-    A
-end
-
-function Householder_Compact_v3!(A)
-    m, n = size(A)
-    j = 1
-        while (j <= n) & (j < m)
-            vj = view(A,j+1:m,j)
-            Aⱼⱼ = A[j,j]
-            σj = my_sign(Aⱼⱼ)
-            vj_norm = sqrt(Aⱼⱼ^2 + norm(vj)^2)
-            vj ./= (Aⱼⱼ + σj*vj_norm)
-            δj = vj'vj + 1
-
-            #changing the diagonal term
-            A[j,j] = -σj*vj_norm
-
-            #applying Householder reflection (A[j+1:m, j+1:n])
-            @views A[j+1:m,j+1:n] .-= 2*view(vj,:,1).*(view(A,j,j+1:n)' + (view(vj,:,1)'view(A,j+1:m,j+1:n)))/δj
-            #applying Householder on the jᵗʰ column (A[j,j+1:n])
-            #b = A[j,j+1:n]
-            @views A[j,j+1:n] .= (1-2/δj)*view(A,j,j+1:n) .- 2*(view(vj,:,1)'view(A,j+1:m,j+1:n))'/δj
-            #println(norm(B-A[j+1:m,j+1:n])) #la sous-matrice A[j+1:m,j+1:n] n'est pas modifiée par cette ligne
-
-            #going to next step
-            j += 1
-        end
-    A
-end=#
-
 
 
 function Q_reconstruction!(A; Q=I)
@@ -205,16 +150,4 @@ function mult_Q_x!(A,x)
         end
     end
     x
-end
-
-m, n = 10, 8
-A = rand(m,n)
-b = rand(m)
-R_H = copy(A)
-Householder_Compact!(R_H)
-F = qr(A)
-    
-Q_H = Q_reconstruction!(R_H)
-
-F.R - triu(R_H)[1:n,1:n]
-F.Q - Q_H
+end;
