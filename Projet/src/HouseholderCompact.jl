@@ -59,7 +59,7 @@ end
 
 #Amélioration : appeler vj avant la boucle et sélectionner les valeurs qui nous intéressent plutôt que de l'appeler à chaque itération
 
-## Version obsolète... ##
+
 function Householder_Compact!(A)
     m, n = size(A)
     j = 1
@@ -69,7 +69,6 @@ function Householder_Compact!(A)
             σj = my_sign(Aⱼⱼ)
             vj_norm = norm(vj)
             vj[1] += σj*vj_norm
-            #vj ./= (Aⱼⱼ + σj*vj_norm) #vient modifier directement A si ./
             δj = vj'vj
 
             #applying Householder reflection
@@ -116,38 +115,44 @@ end
 
 function mult_Q_transpose_x!(A,x)
     m, n = size(A)
-    if m==n
-        for j = 1:(n-1)
-            uj = [1 ; A[j+1:end,j]]
-            δj = uj'uj
-            x[j:m] -= 2*uj*(uj'x[j:m])/δj
-        end
-    else
-        for j = 1:n
-            uj = [1 ; A[j+1:end,j]]
-            δj = uj'uj
-            x[j:m] -= 2*uj*(uj'x[j:m])/δj
-        end
+    j = 1
+    while (j <= n) & (j < m)
+        uj = view(A,j+1:m,j)
+        δj = uj'uj + 1
+        xⱼ = x[j]
+        β = uj'view(x,j+1:m,1)
+        x[j] -= 2*(xⱼ + β)/δj
+        x[j+1:m] .-= 2*(xⱼ + β)*uj/δj
+        j+=1
     end
     x
 end
 
 function mult_Q_x!(A,x)
     m, n = size(A)
-    if m==n
-        for k = 2:n
-            j = n-k+1
-            uj = [1 ; A[j+1:end,j]]
-            δj = uj'uj
-            x[j:m] -= 2*uj*(uj'x[j:m])/δj
-        end
-    else
-        for k = 1:n
-            j = n-k+1
-            uj = [1 ; A[j+1:end,j]]
-            δj = uj'uj
-            x[j:m] -= 2*uj*(uj'x[j:m])/δj
-        end
+    k = 1
+    while (k <= n) & (k < m)
+        j = n-k+1
+        uj = view(A,j+1:m,j)
+        δj = uj'uj + 1
+        xⱼ = x[j]
+        β = uj'view(x,j+1:m,1)
+        x[j] -= 2*(xⱼ + β)/δj
+        x[j+1:m] .-= 2*(xⱼ + β)*uj/δj
+        k+=1
     end
     x
-end;
+end
+
+m, n = 10, 8
+A = rand(m,n)
+b = rand(m)
+b1 = rand(m)
+R_H = copy(A)
+Householder_Compact!(R_H)
+F = qr(A)
+
+Q_H = Q_reconstruction!(R_H)
+
+#println(norm((Q_H')*b - mult_Q_transpose_x!(R_H,b)))
+#(Q_H)*b - mult_Q_x!(R_H,b)
