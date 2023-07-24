@@ -1,5 +1,3 @@
-using BenchmarkTools, Test
-
 include("HouseholderCompact.jl")
 include("blocdiagQR.jl")
 
