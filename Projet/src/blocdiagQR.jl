@@ -1,6 +1,5 @@
 using LinearAlgebra
 using Test
-using BenchmarkTools
 
 include("HouseholderCompact.jl")
 
