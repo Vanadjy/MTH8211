@@ -80,16 +80,15 @@ end
 à la version compacte de la factorisation QR avec concaténation horizontale"
 
 function QR_concat_h_compact!(A1, A2)
-    n1 = size(A1,2) #nombre de colonne du premier bloc 
+    n1 = size(A1,2) #nombre de colonne du premier bloc
+    m2, n2 = size(A2)
 
     Householder_Compact!(A1) #compute QR Householder on the first block of A : A1
 
     mult_Q_transpose_B!(A1, A2) #compute Q' *A2
 
-    Q1_orth_A2 = A2[n1+1:end,1:end] #Q1_orth_A2 = A[n1+1:end, n1+1:end]
+    Q1_orth_A2 = view(A2,n1+1:m2,1:n2) #Q1_orth_A2 = A[n1+1:end, n1+1:end]
     Householder_Compact!(Q1_orth_A2) #compute QR Householder on Q1_orth_A2 which is the second block of Q1*A2
-
-    A2[n1+1:end,1:end] = Q1_orth_A2
 
     return A1, A2
 end
