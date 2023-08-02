@@ -1,4 +1,6 @@
-using LinearAlgebra, Printf
+export my_sign, HouseholderReflection, qrH!, QRebuild!, qtprod!, qprod!
+
+using LinearAlgebra, Printf, SparseArrays
 
 ## utils ##
 
@@ -20,48 +22,9 @@ function HouseholderReflection(u::AbstractVector)
     return (I - 2*u*u'/δ)
 end
 
-## Naive version ##
-
-function QRHouseholder(A)
-    "La fonction suivnte calcule et stocke les matrices liées à  la factorisation Qr de Householder
-    
-    La fonction prend en entrée une matrice de taille mxn et renvoie une matrice triangulaire supérieur 
-    de taille mxn et une matrice unitaire de taille mxm"
-    m, n = size(A)
-    Q = I
-    if m==n #gérer différemment le cas de matrice carrées
-        for j = 1:(n-1)
-            e1 = zeros(m-j+1)
-            e1[1] = 1
-            v = A[j:m,j]
-            u = v + my_sign(v[1])*norm(v)*e1 
-            Hj = HouseholderReflection(u) #dimensions de Hj -> m-j+1,m-j+1
-            Qj = [I zeros(j-1,m-j+1) ;
-                zeros(m-j+1,j-1) Hj]
-            A = Qj*A
-            Q = Q*Qj
-        end
-    else
-        for j = 1:n
-            e1 = zeros(m-j+1)
-            e1[1] = 1
-            v = A[j:m,j]
-            u = v + my_sign(v[1])*norm(v)*e1 
-            Hj = HouseholderReflection(u) #dimensions de Hj -> m-j+1,m-j+1
-            Qj = [I zeros(j-1,m-j+1) ;
-                zeros(m-j+1,j-1) Hj]
-            A = Qj*A
-            Q = Q*Qj
-        end
-    end
-    Q, A
-end
-
-## Compact version ##
-
-function Householder_Compact!(A)
+function qrH!(A::AbstractMatrix)
     """
-    Householder_Compact!(A)
+    qrH!(A)
     
     Computes the Householder QR factorization so that no additional memory space is allocated beyond that already occupied by the full rank input matrix A.
     
@@ -111,9 +74,9 @@ function Householder_Compact!(A)
 end
 
 
-function Q_reconstruction!(A; Q=I)
+function QRebuild!(A::AbstractMatrix; Q=I)
     """
-    Q_reconstruction!(A; Q=I)
+    QRebuild!(A; Q=I)
 
     Rebuilds the unitary matrix Q from the information stored in the matrix A that has been transformed by the function Householder_Compact! so that A = QR
         
@@ -153,7 +116,7 @@ function Q_reconstruction!(A; Q=I)
     Q
 end
 
-function mult_Q_transpose_x!(A,x)
+function qtprod!(A::AbstractMatrix,x::AbstractVector)
     m, n = size(A)
     j = 1
     while (j <= n) & (j < m)
@@ -170,10 +133,9 @@ function mult_Q_transpose_x!(A,x)
         end
         j+=1
     end
-    x
 end
 
-function mult_Q_x!(A,x)
+function qprod!(A::AbstractMatrix,x::AbstractVector)
     m, n = size(A)
     k = 1
         while (k <= n) & (k <= m)
@@ -191,16 +153,4 @@ function mult_Q_x!(A,x)
             end
             k+=1
         end
-    x
 end
-
-m, n = 10, 8
-A = rand(m,n)
-b = rand(m)
-R_H = copy(A)
-Householder_Compact!(R_H)
-F = qr(A)
-
-Q_H = Q_reconstruction!(R_H)
-
-(Q_H)*b - mult_Q_x!(R_H,b)

@@ -1,9 +1,3 @@
-include("HouseholderCompact.jl")
-include("QR_ConcatHorizontal.jl")
-include("blocdiagQR.jl")
-include("MatricesTestSet.jl")
-include("StructuredQR.jl")
-
 using BundleAdjustmentModels, NLPModels
 
 df = problems_df()
