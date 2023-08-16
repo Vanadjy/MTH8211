@@ -39,7 +39,7 @@ end
     @test norm(Q_H'Q_H - I) <= 1e-13 #tests that Q_H si unitary
     qtprod!(R_H,b1)
     @test norm((Q_H')*b - b1) <= 1e-13 #tests if the multiplication is correct
-    #@test norm((Q_H)*b2 - qprod!(R_H,b2)) <= 1e-13
+    @test norm((Q_H)*b2 - qprod!(R_H,b2)) <= 1e-13
     @test norm(F.Q - Q_H) <= 1e-13 #tests of unicity of QR decomposition
     @test norm(F.R - triu(R_H[1:n,1:n])) <= 1e-13
     @test norm(Q_H*triu(R_H) - A) <= 1e-13 #tests if the QR decomposition is correct

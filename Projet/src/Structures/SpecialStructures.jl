@@ -1,9 +1,11 @@
-export HcatMatrix
+export HcatMatrix, assemble
 
-mutable struct HcatMatrix{A1<:AbstractMatrix{T}, A2<:AbstractMatrix{T}} where T
-    A1::A1
-    A2::A2
-    function HcatMatrix(A1,A2)
-        return hcat(A1,A2)
-    end
+mutable struct HcatMatrix{A1<:Matrix, A2<:Matrix}
+    leftm::A1
+    rightm::A2
+end
+
+function assemble(A::HcatMatrix)
+    # CAREFUL : when A is assembled, it is no longer of the type HcatMatrix !!
+    return hcat(A.leftm, A.rightm)
 end
