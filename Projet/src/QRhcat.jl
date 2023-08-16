@@ -1,6 +1,5 @@
 export QRhcat!, QRhcat
 
-
 function QRhcat!(A1::AbstractMatrix, A2::AbstractMatrix)
     """
     QRhcat!(A1::AbstractMatrix, A2::AbstractMatrix)
